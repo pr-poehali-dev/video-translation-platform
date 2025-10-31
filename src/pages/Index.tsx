@@ -1,12 +1,34 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useAuth } from '@/contexts/AuthContext';
+import { Header } from '@/components/Header';
+import { Hero } from '@/components/Hero';
+import { Pricing } from '@/components/Pricing';
+import { Reviews } from '@/components/Reviews';
+import { UploadSection } from '@/components/UploadSection';
+import { SupportChat } from '@/components/SupportChat';
+import { Footer } from '@/components/Footer';
+import { AdminPanel } from '@/components/AdminPanel';
 
 const Index = () => {
+  const { user } = useAuth();
+
+  if (user?.isAdmin) {
+    return (
+      <>
+        <Header />
+        <AdminPanel />
+      </>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
-      </div>
+    <div className="min-h-screen">
+      <Header />
+      <Hero />
+      <UploadSection />
+      <Pricing />
+      <Reviews />
+      <SupportChat />
+      <Footer />
     </div>
   );
 };
