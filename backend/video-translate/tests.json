@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "Test OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "",
+      "bodyMatcher": "exact"
+    },
+    {
+      "name": "Test POST without audio data",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "targetLang": "en"
+      },
+      "expectedStatus": 400,
+      "bodyMatcher": "skip"
+    }
+  ]
+}

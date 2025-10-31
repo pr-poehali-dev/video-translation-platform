@@ -35,7 +35,7 @@ export const UploadSection = () => {
     if (targetLang) localStorage.setItem('lastTargetLang', targetLang);
   }, [sourceLang, targetLang]);
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     if (!user) {
       toast.error('Пожалуйста, войдите в систему');
       return;
@@ -51,56 +51,77 @@ export const UploadSection = () => {
       return;
     }
 
-    setCurrentVideoBlob(file);
     setFileName(file.name);
     setUploading(true);
-    setProgress(0);
+    setProgress(30);
 
-    const uploadInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(uploadInterval);
-          setUploading(false);
-          setProcessing(true);
-          setProgress(0);
-          
-          const processInterval = setInterval(() => {
-            setProgress((p) => {
-              if (p >= 100) {
-                clearInterval(processInterval);
-                setProcessing(false);
-                setCompleted(true);
-                
-                const translation = {
-                  id: Date.now().toString(),
-                  fileName: file.name,
-                  sourceLang: languages.find(l => l.value === sourceLang)?.label || sourceLang,
-                  targetLang: languages.find(l => l.value === targetLang)?.label || targetLang,
-                  status: 'completed' as const,
-                  date: new Date().toLocaleDateString('ru-RU'),
-                  downloadUrl: 'mock-url'
-                };
-                
-                const existingTranslations = JSON.parse(
-                  localStorage.getItem(`translations_${user.id}`) || '[]'
-                );
-                localStorage.setItem(
-                  `translations_${user.id}`,
-                  JSON.stringify([translation, ...existingTranslations])
-                );
-                
-                toast.success('Перевод завершён! Файл готов к скачиванию.');
-                return 100;
-              }
-              return p + 5;
-            });
-          }, 400);
-          
-          return 100;
-        }
-        return prev + 15;
+    try {
+      const reader = new FileReader();
+      
+      const audioBase64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          const base64 = result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
-    }, 200);
+
+      setUploading(false);
+      setProcessing(true);
+      setProgress(0);
+
+      const response = await fetch('https://functions.poehali.dev/41df4859-2e40-4c00-86de-0b76c55720ab', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          audio: audioBase64,
+          targetLang: targetLang
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Ошибка обработки');
+      }
+
+      const data = await response.json();
+      
+      const translatedAudioBlob = await fetch(`data:audio/mp3;base64,${data.audio}`).then(r => r.blob());
+      setCurrentVideoBlob(translatedAudioBlob);
+      
+      setProcessing(false);
+      setCompleted(true);
+      setProgress(100);
+
+      const translation = {
+        id: Date.now().toString(),
+        fileName: file.name,
+        sourceLang: languages.find(l => l.value === sourceLang)?.label || sourceLang,
+        targetLang: languages.find(l => l.value === targetLang)?.label || targetLang,
+        status: 'completed' as const,
+        date: new Date().toLocaleDateString('ru-RU'),
+        downloadUrl: 'blob-url'
+      };
+      
+      const existingTranslations = JSON.parse(
+        localStorage.getItem(`translations_${user.id}`) || '[]'
+      );
+      localStorage.setItem(
+        `translations_${user.id}`,
+        JSON.stringify([translation, ...existingTranslations])
+      );
+      
+      toast.success('Перевод завершён! Файл готов к скачиванию.');
+    } catch (error) {
+      setUploading(false);
+      setProcessing(false);
+      toast.error(error instanceof Error ? error.message : 'Ошибка при обработке видео');
+      console.error('Translation error:', error);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -285,21 +306,6 @@ export const UploadSection = () => {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-                  <div className="flex items-start gap-2">
-                    <Icon name="AlertCircle" className="text-yellow-500 shrink-0 mt-0.5" size={18} />
-                    <div className="text-sm">
-                      <p className="font-semibold text-yellow-500 mb-1">Демо-режим</p>
-                      <p className="text-muted-foreground mb-2">
-                        Это демонстрация интерфейса. В реальной версии здесь будет переведённое видео с озвучкой на выбранном языке.
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        💡 Чтобы выйти из демо-режима, нажмите кнопку "Загрузить ещё" справа
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
                 <div className="flex gap-3">
                   <Button
                     onClick={handleDownload}
