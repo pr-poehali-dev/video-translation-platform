@@ -290,8 +290,11 @@ export const UploadSection = () => {
                     <Icon name="AlertCircle" className="text-yellow-500 shrink-0 mt-0.5" size={18} />
                     <div className="text-sm">
                       <p className="font-semibold text-yellow-500 mb-1">Демо-режим</p>
-                      <p className="text-muted-foreground">
+                      <p className="text-muted-foreground mb-2">
                         Это демонстрация интерфейса. В реальной версии здесь будет переведённое видео с озвучкой на выбранном языке.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        💡 Чтобы выйти из демо-режима, нажмите кнопку "Загрузить ещё" справа
                       </p>
                     </div>
                   </div>
