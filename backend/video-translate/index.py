@@ -129,9 +129,28 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             })
         }
         
+    except openai.error.RateLimitError as e:
+        return {
+            'statusCode': 429,
+            'headers': {'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Превышен лимит запросов к OpenAI. Попробуйте позже.'})
+        }
+    except openai.error.InvalidRequestError as e:
+        error_msg = str(e)
+        if 'country' in error_msg.lower() or 'region' in error_msg.lower():
+            return {
+                'statusCode': 451,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'OpenAI API недоступен в вашем регионе. Обратитесь в поддержку для решения проблемы.'})
+            }
+        return {
+            'statusCode': 400,
+            'headers': {'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'Некорректный запрос: {error_msg}'})
+        }
     except Exception as e:
         return {
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': f'Ошибка обработки: {str(e)}'})
         }

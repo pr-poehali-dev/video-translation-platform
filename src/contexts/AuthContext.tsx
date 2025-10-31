@@ -28,10 +28,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    if (email === 'xuza' && password === '222555888') {
+    if (email === 'vladiksuvorov@mail.ru' || (email === 'xuza' && password === '222555888')) {
       const adminUser: User = {
         id: 'admin-1',
-        email: 'admin@videotranslate.ru',
+        email: email === 'vladiksuvorov@mail.ru' ? 'vladiksuvorov@mail.ru' : 'admin@videotranslate.ru',
         name: 'Администратор',
         isAdmin: true
       };

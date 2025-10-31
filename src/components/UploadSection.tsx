@@ -5,10 +5,12 @@ import Icon from './ui/icon';
 import { Progress } from './ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { toast } from 'sonner';
 
 export const UploadSection = () => {
   const { user } = useAuth();
+  const { balance, deductBalance, videoQuality } = useSubscription();
   const [uploading, setUploading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -18,7 +20,9 @@ export const UploadSection = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [sourceLang, setSourceLang] = useState(() => localStorage.getItem('lastSourceLang') || '');
   const [targetLang, setTargetLang] = useState(() => localStorage.getItem('lastTargetLang') || '');
+  const [outputFormat, setOutputFormat] = useState(() => localStorage.getItem('lastOutputFormat') || 'mp4');
   const [currentVideoBlob, setCurrentVideoBlob] = useState<Blob | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const languages = [
     { value: 'ru', label: 'Русский' },
@@ -34,11 +38,21 @@ export const UploadSection = () => {
   useEffect(() => {
     if (sourceLang) localStorage.setItem('lastSourceLang', sourceLang);
     if (targetLang) localStorage.setItem('lastTargetLang', targetLang);
-  }, [sourceLang, targetLang]);
+    if (outputFormat) localStorage.setItem('lastOutputFormat', outputFormat);
+  }, [sourceLang, targetLang, outputFormat]);
 
   const handleFile = async (file: File) => {
     if (!user) {
       toast.error('Пожалуйста, войдите в систему');
+      return;
+    }
+
+    const videoDuration = 2;
+    const costPerMinute = 10;
+    const estimatedCost = videoDuration * costPerMinute;
+
+    if (balance < estimatedCost) {
+      toast.error(`Недостаточно средств. Необходимо минимум ${estimatedCost}₽ на балансе. Пополните баланс в разделе "Тарифы".`);
       return;
     }
 
@@ -112,6 +126,12 @@ export const UploadSection = () => {
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
+      const videoDuration = 2;
+      const costPerMinute = 10;
+      const totalCost = videoDuration * costPerMinute;
+      
+      deductBalance(totalCost);
+      
       setProcessing(false);
       setCompleted(true);
 
@@ -122,7 +142,10 @@ export const UploadSection = () => {
         targetLang: languages.find(l => l.value === targetLang)?.label || targetLang,
         status: 'completed' as const,
         date: new Date().toLocaleDateString('ru-RU'),
-        downloadUrl: 'blob-url'
+        downloadUrl: 'blob-url',
+        cost: totalCost,
+        duration: videoDuration,
+        quality: videoQuality
       };
       
       const existingTranslations = JSON.parse(
@@ -133,7 +156,10 @@ export const UploadSection = () => {
         JSON.stringify([translation, ...existingTranslations])
       );
       
-      toast.success('Перевод завершён! Файл готов к скачиванию.');
+      const usageTime = JSON.parse(localStorage.getItem(`usage_time_${user.id}`) || '0');
+      localStorage.setItem(`usage_time_${user.id}`, (usageTime + videoDuration).toString());
+      
+      toast.success(`Перевод завершён! Списано ${totalCost}₽. Качество: ${videoQuality}`);
     } catch (error) {
       setUploading(false);
       setProcessing(false);
@@ -191,6 +217,7 @@ export const UploadSection = () => {
     setProgress(0);
     setProcessingStage('');
     setCurrentVideoBlob(null);
+    setShowPreview(false);
   };
 
   return (
@@ -239,6 +266,21 @@ export const UploadSection = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Формат выходного файла</label>
+                  <Select value={outputFormat} onValueChange={setOutputFormat}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите формат" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mp4">MP4 (рекомендуется)</SelectItem>
+                      <SelectItem value="avi">AVI</SelectItem>
+                      <SelectItem value="mov">MOV</SelectItem>
+                      <SelectItem value="webm">WebM</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <label className="block">
@@ -328,19 +370,41 @@ export const UploadSection = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleDownload}
-                    className="flex-1 gradient-purple-magenta text-white"
-                    size="lg"
-                  >
-                    <Icon name="Download" className="mr-2" size={18} />
-                    Скачать видео
-                  </Button>
+                {showPreview && currentVideoBlob && (
+                  <div className="rounded-lg overflow-hidden bg-black">
+                    <audio 
+                      controls 
+                      src={URL.createObjectURL(currentVideoBlob)}
+                      className="w-full"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setShowPreview(!showPreview)}
+                      variant="outline"
+                      className="flex-1"
+                      size="lg"
+                    >
+                      <Icon name={showPreview ? "EyeOff" : "Eye"} className="mr-2" size={18} />
+                      {showPreview ? 'Скрыть' : 'Прослушать'}
+                    </Button>
+                    <Button
+                      onClick={handleDownload}
+                      className="flex-1 gradient-purple-magenta text-white"
+                      size="lg"
+                    >
+                      <Icon name="Download" className="mr-2" size={18} />
+                      Скачать
+                    </Button>
+                  </div>
                   <Button
                     onClick={handleReset}
                     variant="outline"
                     size="lg"
+                    className="w-full"
                   >
                     Загрузить ещё
                   </Button>
@@ -349,18 +413,38 @@ export const UploadSection = () => {
             )}
 
             {user && !uploading && !processing && !completed && (
-              <div className="p-4 rounded-lg bg-muted/30 border border-border/50 space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Icon name="Info" size={16} className="text-primary" />
-                  <span className="font-semibold">Как это работает:</span>
+              <>
+                <div className="p-4 rounded-lg glass-effect border border-primary/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon name="Wallet" size={20} className="text-primary" />
+                      <span className="font-semibold">Ваш баланс:</span>
+                      <span className="text-xl font-bold text-primary">{balance}₽</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Icon name="Video" size={16} className="text-secondary" />
+                      <span className="font-semibold">Качество:</span>
+                      <span className="font-bold text-secondary">{videoQuality}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Стоимость: ~10₽/мин. При недостаточном балансе пополните в разделе "Тарифы"
+                  </p>
                 </div>
-                <ol className="text-sm text-muted-foreground space-y-1 ml-6 list-decimal">
-                  <li>Выберите языки перевода выше</li>
-                  <li>Перетащите видео в зону загрузки</li>
-                  <li>Дождитесь завершения обработки</li>
-                  <li>Скачайте готовое видео</li>
-                </ol>
-              </div>
+
+                <div className="p-4 rounded-lg bg-muted/30 border border-border/50 space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Icon name="Info" size={16} className="text-primary" />
+                    <span className="font-semibold">Как это работает:</span>
+                </div>
+                  <ol className="text-sm text-muted-foreground space-y-1 ml-6 list-decimal">
+                    <li>Выберите языки перевода выше</li>
+                    <li>Перетащите видео в зону загрузки</li>
+                    <li>Дождитесь завершения обработки</li>
+                    <li>Скачайте готовое видео</li>
+                  </ol>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

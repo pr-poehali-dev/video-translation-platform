@@ -21,8 +21,8 @@ export const Footer = () => {
             <h4 className="font-semibold mb-4">Продукт</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#pricing" className="hover:text-foreground transition-colors">Тарифы</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">О сервисе</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">API</a></li>
+              <li><a href="#about" className="hover:text-foreground transition-colors">О сервисе</a></li>
+              <li><a href="#api" className="hover:text-foreground transition-colors">API</a></li>
             </ul>
           </div>
 
@@ -30,33 +30,22 @@ export const Footer = () => {
             <h4 className="font-semibold mb-4">Поддержка</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#support" className="hover:text-foreground transition-colors">Связаться с нами</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">FAQ</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Документация</a></li>
+              <li><a href="#faq" className="hover:text-foreground transition-colors">FAQ</a></li>
+              <li><a href="#docs" className="hover:text-foreground transition-colors">Документация</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Социальные сети</h4>
-            <div className="flex gap-3">
-              <a href="#" className="w-10 h-10 rounded-lg bg-muted hover:bg-primary/20 flex items-center justify-center transition-colors">
-                <Icon name="Send" size={18} />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-lg bg-muted hover:bg-primary/20 flex items-center justify-center transition-colors">
-                <Icon name="Youtube" size={18} />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-lg bg-muted hover:bg-primary/20 flex items-center justify-center transition-colors">
-                <Icon name="Twitter" size={18} />
-              </a>
-            </div>
+            <h4 className="font-semibold mb-4">Правовая информация</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><a href="#privacy" className="hover:text-foreground transition-colors">Политика конфиденциальности</a></li>
+              <li><a href="#terms" className="hover:text-foreground transition-colors">Условия использования</a></li>
+            </ul>
           </div>
         </div>
 
         <div className="border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-          <p>© 2024 VideoTranslate. Все права защищены.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-foreground transition-colors">Политика конфиденциальности</a>
-            <a href="#" className="hover:text-foreground transition-colors">Условия использования</a>
-          </div>
+          <p>© 2025 VideoTranslate. Все права защищены.</p>
         </div>
       </div>
     </footer>

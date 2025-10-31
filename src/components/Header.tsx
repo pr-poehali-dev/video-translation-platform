@@ -10,9 +10,10 @@ import { toast } from 'sonner';
 
 interface HeaderProps {
   onProfileClick: () => void;
+  onLogoClick: () => void;
 }
 
-export const Header = ({ onProfileClick }: HeaderProps) => {
+export const Header = ({ onProfileClick, onLogoClick }: HeaderProps) => {
   const { user, login, register, logout } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
@@ -53,7 +54,7 @@ export const Header = ({ onProfileClick }: HeaderProps) => {
     <header className="fixed top-0 w-full z-50 glass-effect">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <button 
-          onClick={onProfileClick}
+          onClick={onLogoClick}
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <div className="w-10 h-10 rounded-xl gradient-purple-magenta flex items-center justify-center">

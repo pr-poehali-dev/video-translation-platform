@@ -9,15 +9,24 @@ import { SupportChat } from '@/components/SupportChat';
 import { Footer } from '@/components/Footer';
 import { AdminPanel } from '@/components/AdminPanel';
 import { UserDashboard } from '@/components/UserDashboard';
+import { InfoSections } from '@/components/InfoSections';
+import { FAQ } from '@/components/FAQ';
+import { AboutService, PrivacyPolicy, TermsOfService } from '@/components/LegalPages';
+import { APIDocumentation } from '@/components/APIDocumentation';
 
 const Index = () => {
   const { user } = useAuth();
   const [showDashboard, setShowDashboard] = useState(false);
 
+  const handleLogoClick = () => {
+    setShowDashboard(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (user?.isAdmin) {
     return (
       <>
-        <Header onProfileClick={() => {}} />
+        <Header onProfileClick={() => {}} onLogoClick={handleLogoClick} />
         <AdminPanel />
       </>
     );
@@ -26,7 +35,7 @@ const Index = () => {
   if (showDashboard && user) {
     return (
       <>
-        <Header onProfileClick={() => setShowDashboard(false)} />
+        <Header onProfileClick={() => {}} onLogoClick={handleLogoClick} />
         <UserDashboard />
       </>
     );
@@ -34,11 +43,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      <Header onProfileClick={() => setShowDashboard(true)} />
+      <Header onProfileClick={() => setShowDashboard(true)} onLogoClick={handleLogoClick} />
       <Hero />
       <UploadSection />
       <Pricing />
       <Reviews />
+      <InfoSections />
       <SupportChat />
       <Footer />
     </div>

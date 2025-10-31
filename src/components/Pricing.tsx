@@ -1,52 +1,66 @@
 import { Button } from './ui/button';
 import Icon from './ui/icon';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export const Pricing = () => {
+  const { addBalance, balance } = useSubscription();
+  const { user } = useAuth();
   const plans = [
     {
       name: 'Стартовый',
-      price: '50₽',
-      duration: '10 минут',
+      price: 199,
+      priceText: '199₽',
       features: [
-        'Перевод до 10 минут',
-        'HD качество',
+        'HD качество (720p)',
+        'Email уведомления',
         'Базовая поддержка',
-        'Email уведомления'
+        'Все форматы видео'
       ],
       gradient: 'gradient-purple-magenta',
       popular: false
     },
     {
       name: 'Популярный',
-      price: '200₽',
-      duration: '50 минут',
+      price: 499,
+      priceText: '499₽',
       features: [
-        'Перевод до 50 минут',
-        'Full HD качество',
-        'Приоритетная поддержка',
+        'Full HD качество (1080p)',
         'Email + SMS уведомления',
-        'Скидка 20%'
+        'Приоритетная поддержка',
+        'Все форматы видео',
+        'Быстрая обработка'
       ],
       gradient: 'gradient-magenta-orange',
       popular: true
     },
     {
       name: 'Профессиональный',
-      price: '500₽',
-      duration: '150 минут',
+      price: 999,
+      priceText: '999₽',
       features: [
-        'Перевод до 150 минут',
-        '4K качество',
-        'VIP поддержка 24/7',
+        '4K качество (2160p)',
         'Все виды уведомлений',
-        'Скидка 33%',
+        'VIP поддержка 24/7',
+        'Все форматы видео',
+        'Максимальная скорость',
         'Приоритетная обработка'
       ],
       gradient: 'gradient-purple-orange',
       popular: false
     }
   ];
+
+  const handlePurchase = (amount: number, planName: string) => {
+    if (!user) {
+      toast.error('Войдите в систему для пополнения баланса');
+      return;
+    }
+    addBalance(amount);
+    toast.success(`Баланс пополнен на ${amount}₽! План "${planName}" активирован.`);
+  };
 
   return (
     <section id="pricing" className="py-20 px-4">
@@ -58,6 +72,13 @@ export const Pricing = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Выберите подходящий план для ваших задач
           </p>
+          {user && (
+            <div className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full glass-effect border border-primary/30">
+              <Icon name="Wallet" size={20} className="text-primary" />
+              <span className="font-semibold">Ваш баланс:</span>
+              <span className="text-2xl font-bold text-primary">{balance}₽</span>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -82,7 +103,7 @@ export const Pricing = () => {
               </CardHeader>
               <CardContent>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold font-montserrat">{plan.price}</span>
+                  <span className="text-4xl font-bold font-montserrat">{plan.priceText}</span>
                 </div>
                 <ul className="space-y-3">
                   {plan.features.map((feature, i) => (
@@ -94,8 +115,12 @@ export const Pricing = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button className={`w-full ${plan.gradient} text-white`}>
-                  Выбрать план
+                <Button 
+                  onClick={() => handlePurchase(plan.price, plan.name)}
+                  className={`w-full ${plan.gradient} text-white`}
+                  disabled={!user}
+                >
+                  {user ? 'Пополнить баланс' : 'Войдите для покупки'}
                 </Button>
               </CardFooter>
             </Card>
