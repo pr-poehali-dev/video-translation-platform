@@ -3,7 +3,7 @@ import os
 import base64
 import io
 from typing import Dict, Any
-from openai import OpenAI
+import openai
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -53,14 +53,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'OpenAI API key not configured'})
             }
             
-        client = OpenAI(api_key=api_key)
+        openai.api_key = api_key
         
         audio_bytes = base64.b64decode(audio_base64)
         
         audio_file = io.BytesIO(audio_bytes)
         audio_file.name = 'audio.mp3'
         
-        transcript = client.audio.transcriptions.create(
+        transcript = openai.Audio.transcribe(
             model="whisper-1",
             file=audio_file,
             response_format="text"
@@ -80,8 +80,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
         target_language = lang_map.get(target_lang, 'English')
         
-        translation = client.chat.completions.create(
-            model="gpt-4o-mini",
+        translation = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
             messages=[{
                 "role": "system",
                 "content": f"You are a professional translator. Translate the following text to {target_language}. Preserve the tone and style."
@@ -90,7 +90,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "content": transcript
             }]
         )
-        translated_text = translation.choices[0].message.content
+        translated_text = translation.choices[0].message['content']
         
         voice_map = {
             'en': 'alloy',
@@ -106,16 +106,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
         selected_voice = voice_map.get(target_lang, 'alloy')
         
-        speech_response = client.audio.speech.create(
+        speech_response = openai.Audio.create(
             model="tts-1",
             voice=selected_voice,
             input=translated_text
         )
         
-        translated_audio_bytes = b''
-        for chunk in speech_response.iter_bytes():
-            translated_audio_bytes += chunk
-        translated_audio_base64 = base64.b64encode(translated_audio_bytes).decode('utf-8')
+        translated_audio_base64 = speech_response['data']
         
         return {
             'statusCode': 200,

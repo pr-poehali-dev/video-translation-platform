@@ -13,6 +13,7 @@ export const UploadSection = () => {
   const [processing, setProcessing] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [processingStage, setProcessingStage] = useState('');
   const [fileName, setFileName] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [sourceLang, setSourceLang] = useState(() => localStorage.getItem('lastSourceLang') || '');
@@ -70,7 +71,12 @@ export const UploadSection = () => {
 
       setUploading(false);
       setProcessing(true);
-      setProgress(0);
+      setProgress(10);
+      setProcessingStage('Извлекаю аудио из видео...');
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setProgress(25);
+      setProcessingStage('Распознаю речь с помощью ИИ...');
 
       const response = await fetch('https://functions.poehali.dev/41df4859-2e40-4c00-86de-0b76c55720ab', {
         method: 'POST',
@@ -88,14 +94,26 @@ export const UploadSection = () => {
         throw new Error(error.error || 'Ошибка обработки');
       }
 
+      setProgress(50);
+      setProcessingStage('Перевожу текст на целевой язык...');
+      
       const data = await response.json();
+      
+      setProgress(75);
+      setProcessingStage('Создаю озвучку с помощью ИИ...');
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const translatedAudioBlob = await fetch(`data:audio/mp3;base64,${data.audio}`).then(r => r.blob());
       setCurrentVideoBlob(translatedAudioBlob);
       
+      setProgress(100);
+      setProcessingStage('Готово!');
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       setProcessing(false);
       setCompleted(true);
-      setProgress(100);
 
       const translation = {
         id: Date.now().toString(),
@@ -171,6 +189,7 @@ export const UploadSection = () => {
     setCompleted(false);
     setFileName('');
     setProgress(0);
+    setProcessingStage('');
     setCurrentVideoBlob(null);
   };
 
@@ -287,9 +306,12 @@ export const UploadSection = () => {
                     </p>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Progress value={progress} className="h-3" />
-                  <p className="text-center text-sm font-medium">{progress}%</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-primary animate-pulse">{processingStage}</p>
+                    <p className="text-sm font-medium">{progress}%</p>
+                  </div>
                 </div>
               </div>
             )}
