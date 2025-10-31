@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
@@ -11,26 +12,31 @@ import { UserDashboard } from '@/components/UserDashboard';
 
 const Index = () => {
   const { user } = useAuth();
+  const [showDashboard, setShowDashboard] = useState(false);
 
   if (user?.isAdmin) {
     return (
       <>
-        <Header />
+        <Header onProfileClick={() => {}} />
         <AdminPanel />
+      </>
+    );
+  }
+
+  if (showDashboard && user) {
+    return (
+      <>
+        <Header onProfileClick={() => setShowDashboard(false)} />
+        <UserDashboard />
       </>
     );
   }
 
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header onProfileClick={() => setShowDashboard(true)} />
       <Hero />
       <UploadSection />
-      {user && (
-        <section id="dashboard">
-          <UserDashboard />
-        </section>
-      )}
       <Pricing />
       <Reviews />
       <SupportChat />

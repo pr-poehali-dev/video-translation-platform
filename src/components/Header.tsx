@@ -8,7 +8,11 @@ import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { toast } from 'sonner';
 
-export const Header = () => {
+interface HeaderProps {
+  onProfileClick: () => void;
+}
+
+export const Header = ({ onProfileClick }: HeaderProps) => {
   const { user, login, register, logout } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
@@ -58,11 +62,6 @@ export const Header = () => {
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
-          {user && !user.isAdmin && (
-            <button onClick={() => scrollToSection('dashboard')} className="text-foreground/70 hover:text-foreground transition-colors">
-              Мои переводы
-            </button>
-          )}
           <button onClick={() => scrollToSection('pricing')} className="text-foreground/70 hover:text-foreground transition-colors">
             Цены
           </button>
@@ -77,9 +76,17 @@ export const Header = () => {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <span className="hidden md:inline text-sm text-foreground/70">
-                {user.name}
-              </span>
+              <button 
+                onClick={onProfileClick}
+                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-full gradient-purple-magenta flex items-center justify-center">
+                  <Icon name="User" className="text-white" size={16} />
+                </div>
+                <span className="text-sm font-medium">
+                  {user.name}
+                </span>
+              </button>
               <Button onClick={logout} variant="outline">
                 Выйти
               </Button>

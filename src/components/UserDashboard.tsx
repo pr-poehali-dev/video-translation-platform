@@ -55,7 +55,7 @@ export const UserDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-24 px-4">
       <div className="container mx-auto max-w-7xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold font-montserrat mb-2 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">

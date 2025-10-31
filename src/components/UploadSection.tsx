@@ -284,6 +284,18 @@ export const UploadSection = () => {
                     <p className="text-sm text-green-500">Готово к скачиванию</p>
                   </div>
                 </div>
+
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                  <div className="flex items-start gap-2">
+                    <Icon name="AlertCircle" className="text-yellow-500 shrink-0 mt-0.5" size={18} />
+                    <div className="text-sm">
+                      <p className="font-semibold text-yellow-500 mb-1">Демо-режим</p>
+                      <p className="text-muted-foreground">
+                        Это демонстрация интерфейса. В реальной версии здесь будет переведённое видео с озвучкой на выбранном языке.
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="flex gap-3">
                   <Button
