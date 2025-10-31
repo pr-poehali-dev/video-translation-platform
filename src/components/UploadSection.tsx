@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import Icon from './ui/icon';
@@ -15,8 +15,9 @@ export const UploadSection = () => {
   const [progress, setProgress] = useState(0);
   const [fileName, setFileName] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  const [sourceLang, setSourceLang] = useState('');
-  const [targetLang, setTargetLang] = useState('');
+  const [sourceLang, setSourceLang] = useState(() => localStorage.getItem('lastSourceLang') || '');
+  const [targetLang, setTargetLang] = useState(() => localStorage.getItem('lastTargetLang') || '');
+  const [currentVideoBlob, setCurrentVideoBlob] = useState<Blob | null>(null);
 
   const languages = [
     { value: 'ru', label: 'Русский' },
@@ -28,6 +29,11 @@ export const UploadSection = () => {
     { value: 'ja', label: 'Японский' },
     { value: 'ko', label: 'Корейский' },
   ];
+
+  useEffect(() => {
+    if (sourceLang) localStorage.setItem('lastSourceLang', sourceLang);
+    if (targetLang) localStorage.setItem('lastTargetLang', targetLang);
+  }, [sourceLang, targetLang]);
 
   const handleFile = (file: File) => {
     if (!user) {
@@ -45,6 +51,7 @@ export const UploadSection = () => {
       return;
     }
 
+    setCurrentVideoBlob(file);
     setFileName(file.name);
     setUploading(true);
     setProgress(0);
@@ -63,6 +70,25 @@ export const UploadSection = () => {
                 clearInterval(processInterval);
                 setProcessing(false);
                 setCompleted(true);
+                
+                const translation = {
+                  id: Date.now().toString(),
+                  fileName: file.name,
+                  sourceLang: languages.find(l => l.value === sourceLang)?.label || sourceLang,
+                  targetLang: languages.find(l => l.value === targetLang)?.label || targetLang,
+                  status: 'completed' as const,
+                  date: new Date().toLocaleDateString('ru-RU'),
+                  downloadUrl: 'mock-url'
+                };
+                
+                const existingTranslations = JSON.parse(
+                  localStorage.getItem(`translations_${user.id}`) || '[]'
+                );
+                localStorage.setItem(
+                  `translations_${user.id}`,
+                  JSON.stringify([translation, ...existingTranslations])
+                );
+                
                 toast.success('Перевод завершён! Файл готов к скачиванию.');
                 return 100;
               }
@@ -103,6 +129,20 @@ export const UploadSection = () => {
   };
 
   const handleDownload = () => {
+    if (!currentVideoBlob) {
+      toast.error('Файл не найден');
+      return;
+    }
+    
+    const url = URL.createObjectURL(currentVideoBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `translated_${fileName}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
     toast.success('Скачивание начато...');
   };
 
@@ -110,6 +150,7 @@ export const UploadSection = () => {
     setCompleted(false);
     setFileName('');
     setProgress(0);
+    setCurrentVideoBlob(null);
   };
 
   return (

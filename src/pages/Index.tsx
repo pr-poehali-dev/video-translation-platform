@@ -7,6 +7,7 @@ import { UploadSection } from '@/components/UploadSection';
 import { SupportChat } from '@/components/SupportChat';
 import { Footer } from '@/components/Footer';
 import { AdminPanel } from '@/components/AdminPanel';
+import { UserDashboard } from '@/components/UserDashboard';
 
 const Index = () => {
   const { user } = useAuth();
@@ -25,6 +26,11 @@ const Index = () => {
       <Header />
       <Hero />
       <UploadSection />
+      {user && (
+        <section id="dashboard">
+          <UserDashboard />
+        </section>
+      )}
       <Pricing />
       <Reviews />
       <SupportChat />

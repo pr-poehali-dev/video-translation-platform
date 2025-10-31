@@ -58,6 +58,11 @@ export const Header = () => {
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
+          {user && !user.isAdmin && (
+            <button onClick={() => scrollToSection('dashboard')} className="text-foreground/70 hover:text-foreground transition-colors">
+              Мои переводы
+            </button>
+          )}
           <button onClick={() => scrollToSection('pricing')} className="text-foreground/70 hover:text-foreground transition-colors">
             Цены
           </button>
