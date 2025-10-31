@@ -112,7 +112,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             input=translated_text
         )
         
-        translated_audio_bytes = speech_response.content
+        translated_audio_bytes = b''
+        for chunk in speech_response.iter_bytes():
+            translated_audio_bytes += chunk
         translated_audio_base64 = base64.b64encode(translated_audio_bytes).decode('utf-8')
         
         return {
