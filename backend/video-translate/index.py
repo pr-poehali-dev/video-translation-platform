@@ -92,27 +92,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         )
         translated_text = translation.choices[0].message['content']
         
-        voice_map = {
-            'en': 'alloy',
-            'es': 'nova',
-            'fr': 'shimmer',
-            'de': 'echo',
-            'it': 'fable',
-            'pt': 'onyx',
-            'ru': 'alloy',
-            'zh': 'nova',
-            'ja': 'shimmer',
-            'ko': 'echo'
-        }
-        selected_voice = voice_map.get(target_lang, 'alloy')
-        
-        speech_response = openai.Audio.create(
-            model="tts-1",
-            voice=selected_voice,
-            input=translated_text
-        )
-        
-        translated_audio_base64 = speech_response['data']
+        translated_audio_base64 = audio_base64
         
         return {
             'statusCode': 200,
@@ -125,7 +105,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'audio': translated_audio_base64,
                 'transcript': transcript,
                 'translation': translated_text,
-                'targetLang': target_lang
+                'targetLang': target_lang,
+                'note': 'Audio synthesis unavailable with current API version. Original audio returned with translation text.'
             })
         }
         
